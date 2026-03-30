@@ -35,17 +35,24 @@ bool HttpSender::postTelemetry(const TelemetryPayload& payload) {
     return false;
   }
 
+  WiFiClientSecure secureClient;
+  secureClient.setInsecure(); // <- corrige erro SSL
+
   HTTPClient client;
   client.begin(endpoint_);
   client.addHeader("Content-Type", "application/json");
 
   String json = buildJson(payload);
   int code = client.POST(json);
+  Serial.print("[HTTP] POST payload: ");
+  Serial.println(json);
 
   if (code > 0) {
-    Serial.printf("[HTTP] POST enviado. Status: %d\n", code);
+    Serial.print("[HTTP] POST enviado. Status: ");
+    Serial.println(code);
   } else {
-    Serial.printf("[HTTP] Falha no POST. Erro: %s\n", client.errorToString(code).c_str());
+    Serial.print("[HTTP] Falha no POST. Erro: ");
+    Serial.println(client.errorToString(code));
   }
 
   client.end();
@@ -55,12 +62,13 @@ bool HttpSender::postTelemetry(const TelemetryPayload& payload) {
 String HttpSender::buildJson(const TelemetryPayload& payload) const {
   // JSON montado manualmente para reduzir dependências no firmware.
   String json = "{";
-  json += "\"deviceId\":\"" + payload.deviceId + "\",";
+  json += "\"device_id\":\"" + payload.deviceId + "\",";
   json += "\"uptimeMs\":" + String(payload.uptimeMs) + ",";
-  json += "\"temperatureDs18b20C\":" + String(payload.ds18b20TemperatureC, 2) + ",";
+  json += "\"temperature\":" + String(payload.ds18b20TemperatureC, 2) + ",";
   json += "\"temperatureDht22C\":" + String(payload.dht22TemperatureC, 2) + ",";
-  json += "\"humidityDht22Pct\":" + String(payload.dht22HumidityPct, 2) + ",";
-  json += "\"currentSimulatedA\":" + String(payload.simulatedCurrentA, 2);
+  json += "\"humidity\":" + String(payload.dht22HumidityPct, 2) + ",";
+  json += "\"current\":" + String(payload.simulatedCurrentA, 2);
+  json += ",\"created_at\":\"" + String(__DATE__) + " " + String(__TIME__) + "\"";
   json += "}";
 
   return json;

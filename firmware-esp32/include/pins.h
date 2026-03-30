@@ -5,6 +5,6 @@
 constexpr int PIN_DS18B20 = 4;
 
 // Pino de dados do DHT22.
-constexpr int PIN_DHT22 = 5;
+constexpr int PIN_DHT22 = 15;
 
 #endif

@@ -30,14 +30,19 @@ void setup() {
   g_httpSender.begin();
 
   Serial.println("Inicialização concluída.");
+  Serial.println("-> dentro do intervalo de postagem, aguardando 10 segundos...");
 }
 
 void loop() {
+  Serial.begin(115200);
+  
   unsigned long now = millis();
   if (now - g_lastPostMs < POST_INTERVAL_MS) {
+    //Serial.printf("now=%lu, g_lastPostMs=%lu, diff=%lu, POST_INTERVAL_MS=%lu\n", now, g_lastPostMs, now - g_lastPostMs, POST_INTERVAL_MS);
     delay(50);
     return;
   }
+  Serial.println("-> intervalo de postagem atingido, coletando dados e enviando...");
 
   g_lastPostMs = now;
 
@@ -57,12 +62,17 @@ void loop() {
   payload.dht22HumidityPct = dht22Humidity;
   payload.simulatedCurrentA = simulatedCurrentA;
 
+  Serial.println("-> Dados coletados, preparando para envio...");
+  Serial.println("");
+
   // Envio HTTP POST em JSON a cada 10 segundos.
   bool ok = g_httpSender.postTelemetry(payload);
 
+  Serial.println("");
   // Exemplo de uso dos thresholds locais (ainda não altera fluxo principal).
   const bool tempCritical = ds18b20TempC >= TEMP_CRITICAL_C || dht22TempC >= TEMP_CRITICAL_C;
 
+  Serial.println("---- TELEMETRIA ENVIADA ----");
   Serial.printf(
       "Payload => DS18B20: %.2fC | DHT22 Temp: %.2fC | DHT22 Umidade: %.2f%% | Corrente(sim): %.2fA | envio=%s | tempCritical=%s\n",
       ds18b20TempC,
@@ -71,4 +81,5 @@ void loop() {
       simulatedCurrentA,
       ok ? "OK" : "FALHOU",
       tempCritical ? "SIM" : "NAO");
+  Serial.println("");
 }
